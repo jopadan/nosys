@@ -37,20 +37,20 @@ namespace sys
                 std::array<char, 8> fps;
                 inline f64 get() { return glfwGetTime(); }
 
-                bool tick()
-                {
-                        now = get();
-                        frames++;
-                        delta = now - last;
-                        if(delta >= 1.0)
-                        {
-                                fps = { '\0' };
-                                snprintf(fps.data(), 8, "%3hufps", (u16)frames);
-                                frames = 0;
-                                last = now;
-                        }
-                        return true;
-                }
+		bool tick()
+		{
+			now = get();
+			frames++;
+			delta = now - last;
+			if(delta >= 1.0)
+			{
+				fps = { '\0' };
+				snprintf(fps.data(), 8, "%3hufps", (u16)frames);
+				frames = 0;
+				last = now;
+			}
+			return true;
+		}
 		void draw_fps()
 		{
 			glPushMatrix();
@@ -65,7 +65,7 @@ namespace sys
 			glcRenderString(fps.data());
 			glPopMatrix();
 		}
-        } time;
+	} time;
 
         void zoom(GLFWwindow* window, f64 x, f64 y)
         {
