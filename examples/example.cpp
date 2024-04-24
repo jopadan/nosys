@@ -1,10 +1,8 @@
 #include "NoSYS/glfw.hpp"
 
-
 int main(int argc, char** argv)
 {
-
-        sys::init();
+	sys::init();
 	nma::geo::box<sca::f32> cube;
 	while(sys::tick())
 	{
@@ -16,6 +14,6 @@ int main(int argc, char** argv)
 
 		sys::swap();
 	}
-        sys::halt();
-        exit(EXIT_SUCCESS);
+	sys::halt();
+	exit(EXIT_SUCCESS);
 }
