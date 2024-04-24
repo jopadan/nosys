@@ -1,6 +1,6 @@
 # NoSYS
 
-Platform independent framework based on GLFW, QuesoGLC and OpenNMA
+Platform independent framework based on [GLFW], [QuesoGLC] and [OpenNMA]
 
 # Usage
 
@@ -27,3 +27,12 @@ int main(int argc, char** argv)
     exit(SUCCESS);
 }
 ```
+
+# Links
+- [GLFW]
+- [OpenNMA]
+- [QuesoGLC]
+
+[OpenNMA]: https://codeberg.org/forcemaster/OpenNMA
+[GLFW]: https://github.com/glfw/glfw
+[QuesoGLC]: https://sourceforge.net/projects/quesoglc/
