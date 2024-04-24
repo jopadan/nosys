@@ -18,16 +18,16 @@ using namespace nma::sca;
 
 namespace sys
 {
-        GLFWwindow*               win = nullptr; /* system window                  */
-        s32                       w   =    640u; /* screen width                   */
-        s32                       h   =    480u; /* screen height                  */
-        f32                       z   =    1.0f; /* mouse wheel scroll zoom z-axis */
+	GLFWwindow*               win = nullptr; /* system window                  */
+	s32                       w   =    640u; /* screen width                   */
+	s32                       h   =    480u; /* screen height                  */
+	f32                       z   =    1.0f; /* mouse wheel scroll zoom z-axis */
 
-        struct
-        {
-                s32    idx = 1;
-                std::array<s32, 2> sze = { 15, 15 };
-        } font;
+	struct
+	{
+		s32    idx = 1;
+		std::array<s32, 2> sze = { 15, 15 };
+	} font;
 	struct
 	{
 		f64 now;
@@ -91,66 +91,66 @@ namespace sys
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
-        bool init(int width = w, int height = h, const char* title = "sys::glfw")
-        {
-                const char* description;
+	bool init(int width = w, int height = h, const char* title = "sys::glfw")
+	{
+		const char* description;
 
-                if (!glfwInit())
-                {
-                        glfwGetError(&description);
-                        printf("Error: %s\n", description);
-                        return false;
-                }
+		if (!glfwInit())
+		{
+			glfwGetError(&description);
+			printf("Error: %s\n", description);
+			return false;
+		}
 
-                win = glfwCreateWindow(width, height, title, NULL, NULL);
-                if (!win)
-                {
-                        glfwGetError(&description);
-                        printf("Error: %s\n", description);
-                        glfwTerminate();
-                        return false;
-                }
-                glfwSetInputMode(win, GLFW_STICKY_KEYS, GLFW_TRUE);
-                /* set GLFW callbacks */ 
-                glfwSetFramebufferSizeCallback(win, size);
-                glfwSetScrollCallback(win, zoom);
+		win = glfwCreateWindow(width, height, title, NULL, NULL);
+		if (!win)
+		{
+			glfwGetError(&description);
+			printf("Error: %s\n", description);
+			glfwTerminate();
+			return false;
+		}
+		glfwSetInputMode(win, GLFW_STICKY_KEYS, GLFW_TRUE);
+		/* set GLFW callbacks */ 
+		glfwSetFramebufferSizeCallback(win, size);
+		glfwSetScrollCallback(win, zoom);
 
-                glfwMakeContextCurrent(win);
-                gladLoadGL(glfwGetProcAddress);
-                glfwGetFramebufferSize(win, &w, &h);
-                glClearColor(0.0f, 0.0f, 0.0f, 1.f);
-                size(win, width, height);
-                glcContext(glcGenContext());
-                glcScale(font.sze[0], font.sze[1]);
-                glcNewFontFromFamily(1, "Helvetica");
-                glcNewFontFromFamily(2, "Courier");
-                glcNewFontFromFamily(3, "Times");
-                glcFont(font.idx);
-                return true;
-        }
+		glfwMakeContextCurrent(win);
+		gladLoadGL(glfwGetProcAddress);
+		glfwGetFramebufferSize(win, &w, &h);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.f);
+		size(win, width, height);
+		glcContext(glcGenContext());
+		glcScale(font.sze[0], font.sze[1]);
+		glcNewFontFromFamily(1, "Helvetica");
+		glcNewFontFromFamily(2, "Courier");
+		glcNewFontFromFamily(3, "Times");
+		glcFont(font.idx);
+		return true;
+	}
 
-        void halt()
-        {
-                if(win)
-                        glfwDestroyWindow(win);
-                glfwTerminate();
-        }
+	void halt()
+	{
+		if(win)
+			glfwDestroyWindow(win);
+		glfwTerminate();
+	}
 
-        bool tick()
-        {
-                time.tick();
-                glfwMakeContextCurrent(win);
-                glfwGetWindowSize(win, &w, &h);
-                size(win, w,h);
+	bool tick()
+	{
+		time.tick();
+		glfwMakeContextCurrent(win);
+		glfwGetWindowSize(win, &w, &h);
+		size(win, w,h);
 
-                if (glfwWindowShouldClose(win) || glfwGetKey(win, GLFW_KEY_ESCAPE))
-                        return false;
-                return true;
-        }
+		if (glfwWindowShouldClose(win) || glfwGetKey(win, GLFW_KEY_ESCAPE))
+			return false;
+		return true;
+	}
 
-        void swap()
-        {
-                glfwSwapBuffers(win);
-                glfwPollEvents();
-        }
+	void swap()
+	{
+		glfwSwapBuffers(win);
+		glfwPollEvents();
+	}
 }
