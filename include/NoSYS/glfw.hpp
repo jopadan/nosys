@@ -7,6 +7,7 @@
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <GL/gl.h>
 #include <GL/glcorearb.h>
 #include <GL/glu.h>
 #include <GL/glc.h>
@@ -50,6 +51,20 @@ namespace sys
                         }
                         return true;
                 }
+		void draw_fps()
+		{
+			glPushMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			gluOrtho2D(0., sys::w, 0., sys::h);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glColor3f(1.0f, 1.0f, 1.0f);
+			glRasterPos2f(sys::w - 5 * sys::font.sze[0], sys::h - sys::font.sze[1]);
+			glcFont(sys::font.idx);
+			glcRenderString(fps.data());
+			glPopMatrix();
+		}
         } time;
 
         void zoom(GLFWwindow* window, f64 x, f64 y)
