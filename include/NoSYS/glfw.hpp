@@ -19,8 +19,8 @@ using namespace nma::sca;
 namespace sys
 {
 	GLFWwindow*               win = nullptr; /* system window                  */
-	s32                       w   =    640u; /* screen width                   */
-	s32                       h   =    480u; /* screen height                  */
+	s32                       w   =    320u; /* screen width                   */
+	s32                       h   =    240u; /* screen height                  */
 	f32                       z   =    1.0f; /* mouse wheel scroll zoom z-axis */
 
 	struct
@@ -68,12 +68,40 @@ namespace sys
 		}
 	} time;
 
+	std::vector<col::u8<4>> grab()
+	{
+		std::vector<col::u8<4>> pixels(w * h);
+		GLint pack_alignment;
+		glGetIntegerv(GL_PACK_ALIGNMENT, &pack_alignment);
+		glPixelStorei(GL_PACK_ALIGNMENT, 4);
+		glReadBuffer(GL_FRONT);
+		glFlush();
+		glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &pixels.front());
+		glPixelStorei(GL_PACK_ALIGNMENT, pack_alignment);
+		return pixels;
+	}
+
+
 	void zoom(GLFWwindow* window, f64 x, f64 y)
 	{
 		z += (f32)y / 8.0f;
 		if(z < 0) z = 0;
 	}
-
+	void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
+	{
+		if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+		if(key == GLFW_KEY_F12 && action == GLFW_PRESS)
+		{
+			std::vector<col::u8<4>> pixels = grab();
+			FILE* fo = fopen("screenshot.raw", "wb");
+			if(fo)
+			{
+				fwrite(pixels.data(), sizeof(col::u8<4>), pixels.size(), fo);
+				fclose(fo);
+			}
+		}
+	}
 	void size(GLFWwindow* window, int w, int h)
 	{
 		glViewport(0, 0, w, h);
@@ -128,7 +156,7 @@ namespace sys
 		/* set GLFW callbacks */ 
 		glfwSetFramebufferSizeCallback(win, size);
 		glfwSetScrollCallback(win, zoom);
-
+		glfwSetKeyCallback(win, keys);
 		glfwMakeContextCurrent(win);
 		gladLoadGL(glfwGetProcAddress);
 		glfwGetFramebufferSize(win, &w, &h);

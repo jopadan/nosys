@@ -10,8 +10,8 @@ int main(int argc, char** argv)
 
 		glRotatef((f32)sys::time.now * 100.0f, 1.0f, 0.0f, 1.0f);
 		cube.draw();
-		sys::time.draw_fps();
 
+		sys::time.draw_fps();
 		sys::swap();
 	}
 	sys::halt();
