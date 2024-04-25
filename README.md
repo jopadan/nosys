@@ -2,6 +2,8 @@
 
 Platform independent framework based on [GLFW], [QuesoGLC] and [OpenNMA]
 
+![screenshot](assets/images/screenshot.png "screenshot")
+
 # Usage
 
 ```c++
