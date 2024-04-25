@@ -59,6 +59,7 @@ namespace sys
 			gluOrtho2D(0., sys::w, 0., sys::h);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
+			glDisable(GL_LIGHTING);
 			glColor3f(1.0f, 1.0f, 1.0f);
 			glRasterPos2f(sys::w - 5 * sys::font.sze[0], sys::h - sys::font.sze[1]);
 			glcFont(sys::font.idx);
@@ -84,11 +85,24 @@ namespace sys
 		gluLookAt(0.0f,   0.0f, 3.0f * z,
 		          0.0f,   0.0f, 0.0f,
 		          0.0f,   1.0f, 0.0f);
+		vec::f32<4> pos = { 0.0f, 0.0f, 3.0f * z, 1.0f };
+		vec::f32<4> col = { 1.0f, 1.0f, 1.0f, 1.0f };
+		glLightfv(GL_LIGHT0, GL_POSITION, (sca::f32*)&pos);
+		glLightfv(GL_LIGHT0, GL_AMBIENT, (sca::f32*)&col);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
+		glDepthMask(GL_TRUE);
+		glEnable(GL_FOG);
+		glFogi(GL_FOG_MODE, GL_EXP);
+		glFogf(GL_FOG_DENSITY, 0.1f);
+		glFogfv(GL_FOG_COLOR, (sca::f32*)&col);
 	}
 
 	void sclr()
 	{
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	bool init(int width = w, int height = h, const char* title = "sys::glfw")
