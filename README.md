@@ -30,6 +30,11 @@ int main(int argc, char** argv)
 }
 ```
 
+To convert screenshot use:
+```sh
+convert -size widthxheight -flip -depth 8 RGBA:screenshot.raw screenshot.png
+```
+
 # Links
 - [GLFW]
 - [OpenNMA]
