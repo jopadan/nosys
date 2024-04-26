@@ -11,6 +11,3 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 example
-screenshot.png
-screenshot.*
-screenshot*
