@@ -3,6 +3,8 @@
 #include <array>
 #include <vector>
 #include <string>
+#include <filesystem>
+#include <iostream>
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
@@ -12,7 +14,6 @@
 #include <GL/glu.h>
 #include <GL/glc.h>
 #include <NMA/nma.hpp>
-#include <iostream>
 #include <sail-c++/sail-c++.h>
 #include <sail-c++/image_output.h>
 
@@ -71,7 +72,7 @@ namespace sys
 		}
 	} time;
 
-	bool grab()
+	bool grab(std::filesystem::path filepath = "screenshot.png")
 	{
 		std::vector<col::u8<4>> pixels(w * h);
 		GLint pack_alignment;
@@ -93,7 +94,7 @@ namespace sys
 			}
 		}
 		sail::image image(pixels.data(), SAIL_PIXEL_FORMAT_BPP32_RGBA, w, h, w * sizeof(pixels[0]));
-		sail::image_output image_output("screenshot.png");
+		sail::image_output image_output(filepath);
 		SAIL_TRY(image_output.next_frame(image));
 		SAIL_TRY(image_output.finish());
 		return true;
