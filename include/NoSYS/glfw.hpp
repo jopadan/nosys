@@ -12,6 +12,9 @@
 #include <GL/glu.h>
 #include <GL/glc.h>
 #include <NMA/nma.hpp>
+#include <iostream>
+#include <sail-c++/sail-c++.h>
+#include <sail-c++/image_output.h>
 
 using namespace nma;
 using namespace nma::sca;
@@ -68,7 +71,7 @@ namespace sys
 		}
 	} time;
 
-	std::vector<col::u8<4>> grab()
+	bool grab()
 	{
 		std::vector<col::u8<4>> pixels(w * h);
 		GLint pack_alignment;
@@ -78,7 +81,22 @@ namespace sys
 		glFlush();
 		glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &pixels.front());
 		glPixelStorei(GL_PACK_ALIGNMENT, pack_alignment);
-		return pixels;
+
+		/* flip vertically */
+		for(sca::s32 row = 0; row < h >> 2; row++)
+		{
+			for(sca::s32 col = 0; col < w; col++)
+			{ 
+				col::u8<4> tmp = pixels[row * w + col];
+				pixels[row * w + col] = pixels[(h - row - 1) * w + col];
+				pixels[(h - row - 1) * w + col] = tmp;
+			}
+		}
+		sail::image image(pixels.data(), SAIL_PIXEL_FORMAT_BPP32_RGBA, w, h, w * sizeof(pixels[0]));
+		sail::image_output image_output("screenshot.png");
+		SAIL_TRY(image_output.next_frame(image));
+		SAIL_TRY(image_output.finish());
+		return true;
 	}
 
 
@@ -91,16 +109,9 @@ namespace sys
 	{
 		if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
+
 		if(key == GLFW_KEY_F12 && action == GLFW_PRESS)
-		{
-			std::vector<col::u8<4>> pixels = grab();
-			FILE* fo = fopen("screenshot.raw", "wb");
-			if(fo)
-			{
-				fwrite(pixels.data(), sizeof(col::u8<4>), pixels.size(), fo);
-				fclose(fo);
-			}
-		}
+			grab();
 	}
 	void size(GLFWwindow* window, int w, int h)
 	{

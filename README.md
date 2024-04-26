@@ -1,6 +1,11 @@
 # NoSYS
 
-Platform independent framework based on [GLFW], [QuesoGLC] and [OpenNMA]
+Platform independent framework based on:
+
+- [GLFW] platform abstraction framework
+- [QuesoGLC] opengl font library
+- [SAIL] image load/save library
+- [OpenNMA] linear algebra math library
 
 ![screenshot](assets/images/screenshot.png "screenshot")
 
@@ -30,16 +35,13 @@ int main(int argc, char** argv)
 }
 ```
 
-To convert screenshot use:
-```sh
-convert -size widthxheight -flip -depth 8 RGBA:screenshot.raw screenshot.png
-```
-
 # Links
-- [GLFW]
 - [OpenNMA]
+- [GLFW]
 - [QuesoGLC]
+- [SAIL]
 
 [OpenNMA]: https://codeberg.org/forcemaster/OpenNMA
 [GLFW]: https://github.com/glfw/glfw
 [QuesoGLC]: https://sourceforge.net/projects/quesoglc/
+[SAIL]: https://github.com/HappySeaFox/sail
