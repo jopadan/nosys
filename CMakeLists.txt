@@ -42,6 +42,9 @@ target_include_directories( NoSYS INTERFACE
 add_executable( example examples/example.cpp )
 target_link_libraries( example NoSYS OpenGL::OpenGL OpenGL::GLU PkgConfig::GLFW PkgConfig::GLC PkgConfig::SAIL)
 
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/OpenNMA DESTINATION
+	${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers
+)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/NoSYS DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers
 )
