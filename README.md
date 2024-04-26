@@ -16,7 +16,7 @@ Platform independent framework based on:
 
 col::u16<5,6,5> bfcolor = { 12, 23, 26 };
 col::u8<4>      vccolor = (col::u8<4>)bfcolor;
-box<sca::f32>   cube;
+geo::box<f32>   cube;
 
 int main(int argc, char** argv)
 {

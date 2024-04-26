@@ -1,9 +1,10 @@
 #include "NoSYS/glfw.hpp"
 
+geo::box<f32>   cube;
+
 int main(int argc, char** argv)
 {
 	sys::init();
-	nma::geo::box<sca::f32> cube;
 	while(sys::tick())
 	{
 		sys::sclr();
