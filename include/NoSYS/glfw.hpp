@@ -79,7 +79,6 @@ namespace sys
 		glGetIntegerv(GL_PACK_ALIGNMENT, &pack_alignment);
 		glPixelStorei(GL_PACK_ALIGNMENT, 4);
 		glReadBuffer(GL_FRONT);
-		glFlush();
 		glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &pixels.front());
 		glPixelStorei(GL_PACK_ALIGNMENT, pack_alignment);
 
