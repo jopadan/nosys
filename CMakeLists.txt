@@ -26,7 +26,6 @@ add_link_options(-Wl,-s)
 
 find_package(PkgConfig)
 find_package(OpenGL)
-find_package(WLH)
 pkg_check_modules(GLFW IMPORTED_TARGET REQUIRED glfw3)
 pkg_check_modules(GLC  IMPORTED_TARGET REQUIRED quesoglc)
 pkg_check_modules(SAIL IMPORTED_TARGET REQUIRED sail-c++)
@@ -43,7 +42,7 @@ target_include_directories( NoSYS INTERFACE
 add_executable( example examples/example.cpp )
 target_link_libraries( example NoSYS OpenGL::OpenGL OpenGL::GLU PkgConfig::GLFW PkgConfig::GLC PkgConfig::SAIL)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/OpenNMA DESTINATION
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/MLR DESTINATION
 	${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers
 )
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/NoSYS DESTINATION

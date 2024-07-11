@@ -1,3 +1,3 @@
-[submodule "include/mlr"]
-	path = include/mlr
+[submodule "include/MLR"]
+	path = include/MLR
 	url = http://codeberg.org/forcemaster/mlr
