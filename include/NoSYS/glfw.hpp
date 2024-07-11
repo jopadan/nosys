@@ -13,12 +13,12 @@
 #include <GL/glcorearb.h>
 #include <GL/glu.h>
 #include <GL/glc.h>
-#include <NMA/nma.hpp>
+#include <MLR/mlr.hpp>
 #include <sail-c++/sail-c++.h>
 #include <sail-c++/image_output.h>
 
-using namespace nma;
-using namespace nma::sca;
+using namespace math;
+using namespace math::sca;
 
 namespace sys
 {
