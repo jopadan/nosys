@@ -1,3 +1,3 @@
-[submodule "include/OpenNMA"]
-	path = include/OpenNMA
-	url = https://codeberg.org/forcemaster/OpenNMA/
+[submodule "include/mlr"]
+	path = include/mlr
+	url = http://codeberg.org/forcemaster/mlr

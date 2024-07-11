@@ -26,6 +26,7 @@ add_link_options(-Wl,-s)
 
 find_package(PkgConfig)
 find_package(OpenGL)
+find_package(WLH)
 pkg_check_modules(GLFW IMPORTED_TARGET REQUIRED glfw3)
 pkg_check_modules(GLC  IMPORTED_TARGET REQUIRED quesoglc)
 pkg_check_modules(SAIL IMPORTED_TARGET REQUIRED sail-c++)

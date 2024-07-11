@@ -60,13 +60,12 @@ namespace sys
 			glPushMatrix();
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
-			gluOrtho2D(0., sys::w, 0., sys::h);
+			gluOrtho2D(0., w, 0., h);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
 			glDisable(GL_LIGHTING);
 			glColor3f(1.0f, 1.0f, 1.0f);
-			glRasterPos2f(sys::w - 5 * sys::font.sze[0], sys::h - sys::font.sze[1]);
-			glcFont(sys::font.idx);
+			glRasterPos2f(w - font.sze[0] * 4, h - font.sze[1]);
 			glcRenderString(fps.data());
 			glPopMatrix();
 		}
@@ -74,30 +73,25 @@ namespace sys
 
 	bool grab(std::filesystem::path filepath = "screenshot.png")
 	{
-		std::vector<col::u8<4>> pixels(w * h);
+		std::vector<col::u8<3>> pixels(w * h);
 		GLint pack_alignment;
 		glGetIntegerv(GL_PACK_ALIGNMENT, &pack_alignment);
 		glPixelStorei(GL_PACK_ALIGNMENT, 4);
 		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &pixels.front());
+		glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, &pixels.front());
 		glPixelStorei(GL_PACK_ALIGNMENT, pack_alignment);
 
+		sail::image image(pixels.data(), SAIL_PIXEL_FORMAT_BPP24_RGB, w, h, w * sizeof(pixels[0]));
 		/* flip vertically */
-		for(sca::s32 row = 0; row < h >> 2; row++)
-		{
-			for(sca::s32 col = 0; col < w; col++)
-			{ 
-				col::u8<4> tmp = pixels[row * w + col];
-				pixels[row * w + col] = pixels[(h - row - 1) * w + col];
-				pixels[(h - row - 1) * w + col] = tmp;
-			}
-		}
-		sail::image image(pixels.data(), SAIL_PIXEL_FORMAT_BPP32_RGBA, w, h, w * sizeof(pixels[0]));
+		image.mirror(SAIL_ORIENTATION_MIRRORED_VERTICALLY);
+		/* write image to filepath */
 		sail::image_output image_output(filepath);
 		SAIL_TRY(image_output.next_frame(image));
 		SAIL_TRY(image_output.finish());
 		return true;
 	}
+
+	#include "glfw_keys.hpp"
 
 
 	void zoom(GLFWwindow* window, f64 x, f64 y)
@@ -105,20 +99,15 @@ namespace sys
 		z += (f32)y / 8.0f;
 		if(z < 0) z = 0;
 	}
-	void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-		if(key == GLFW_KEY_F12 && action == GLFW_PRESS)
-			grab();
-	}
-	void size(GLFWwindow* window, int w, int h)
+	void size(GLFWwindow* window, int width, int height)
 	{
-		glViewport(0, 0, w, h);
+		glViewport(0, 0, width, height);
+		w = width;
+		h = height;
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective( 65.0f, (f32)w/(f32)h, 0.0f, 100.0f);
+		gluPerspective( 65.0f, (sca::f32)w/(sca::f32)h, 0.0f, 100.0f);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		gluLookAt(0.0f,   0.0f, 3.0f * z,
@@ -126,17 +115,9 @@ namespace sys
 		          0.0f,   1.0f, 0.0f);
 		vec::f32<4> pos = { 0.0f, 0.0f, 3.0f * z, 1.0f };
 		vec::f32<4> col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		glLightfv(GL_LIGHT0, GL_POSITION, (sca::f32*)&pos);
-		glLightfv(GL_LIGHT0, GL_AMBIENT, (sca::f32*)&col);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
 		glDepthMask(GL_TRUE);
-		glEnable(GL_FOG);
-		glFogi(GL_FOG_MODE, GL_EXP);
-		glFogf(GL_FOG_DENSITY, 0.1f);
-		glFogfv(GL_FOG_COLOR, (sca::f32*)&col);
+		printf("Resolution changed: %dx%d\n", w, h);
 	}
 
 	void sclr()
@@ -169,21 +150,23 @@ namespace sys
 		glfwSetScrollCallback(win, zoom);
 		glfwSetKeyCallback(win, keys);
 		glfwMakeContextCurrent(win);
+		/* disable vsync */
+		glfwSwapInterval(0);
 		gladLoadGL(glfwGetProcAddress);
 		glfwGetFramebufferSize(win, &w, &h);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.f);
-		size(win, width, height);
 		glcContext(glcGenContext());
 		glcScale(font.sze[0], font.sze[1]);
-		glcNewFontFromFamily(1, "Helvetica");
-		glcNewFontFromFamily(2, "Courier");
-		glcNewFontFromFamily(3, "Times");
 		glcFont(font.idx);
+		glcNewFontFromFamily(1, "Times");
+		size(win, width, height);
 		return true;
 	}
 
 	void halt()
 	{
+		glcDeleteFont(font.idx);
+		glcDeleteContext(glcGetCurrentContext());
 		if(win)
 			glfwDestroyWindow(win);
 		glfwTerminate();
@@ -192,10 +175,6 @@ namespace sys
 	bool tick()
 	{
 		time.tick();
-		glfwMakeContextCurrent(win);
-		glfwGetWindowSize(win, &w, &h);
-		size(win, w,h);
-
 		if (glfwWindowShouldClose(win) || glfwGetKey(win, GLFW_KEY_ESCAPE))
 			return false;
 		return true;
