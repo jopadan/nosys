@@ -5,7 +5,7 @@ Platform independent framework based on:
 - [GLFW] platform abstraction framework
 - [QuesoGLC] opengl font library
 - [SAIL] image load/save library
-- [OpenNMA] linear algebra math library
+- [MLR] linear algebra math library
 
 ![screenshot](assets/images/screenshot.png "screenshot")
 
