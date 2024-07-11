@@ -38,12 +38,12 @@ int main(int argc, char** argv)
 ```
 
 # Links
-- [OpenNMA]
+- [MLR]
 - [GLFW]
 - [QuesoGLC]
 - [SAIL]
 
-[OpenNMA]: https://codeberg.org/forcemaster/OpenNMA
+[MLR]: https://codeberg.org/forcemaster/mlr
 [GLFW]: https://github.com/glfw/glfw
 [QuesoGLC]: https://sourceforge.net/projects/quesoglc/
 [SAIL]: https://github.com/HappySeaFox/sail
