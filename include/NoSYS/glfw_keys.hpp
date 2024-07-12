@@ -184,7 +184,7 @@ void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	printf("key: %s action: %d mods: %X\n", glfwGetKeyName(key, scancode), action, mods);
 
-	if(action == key_press)
+	if(action == key_press || action == key_repeat)
 	{
 		switch(key)
 		{
@@ -195,19 +195,19 @@ void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 				grab();
 				break;
 			case key_up:
-				zoom(win, 0,  1.0/128);
+				zoom(win, 0.0,  1.0);
 				break;
 			case key_down:
-				zoom(win, 0, -1.0/128);
+				zoom(win, 0.0, -1.0);
 				break;
 			case key_left:
-				zoom(win, -1.0/128, 0);
+				zoom(win, -1.0, 0);
 				break;
 			case key_right:
-				zoom(win,  1.0/128, 0);
+				zoom(win,  1.0, 0);
 				break;
 			default:
 				break;
 		}
-	};
+	}
 }

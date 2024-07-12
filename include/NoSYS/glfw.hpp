@@ -98,7 +98,6 @@ namespace sys
 	struct
 	{
 		geo::box<float> test_cube;
-		std::vector<scene> scenes;
 
 		void clr()
 		{
@@ -158,13 +157,12 @@ namespace sys
 		return true;
 	}
 
-	#include "glfw_keys.hpp"
-
 
 	void zoom(GLFWwindow* window, f64 x, f64 y)
 	{
 		z += (f32)y / 8.0f;
 		if(z < 0) z = 0;
+		printf("%f\n", z);
 	}
 
 	void size(GLFWwindow* window, int width, int height)
@@ -175,6 +173,8 @@ namespace sys
 		cam.set_perspective();
 		printf("Resolution changed: %dx%d\n", w, h);
 	}
+
+	#include "glfw_keys.hpp"
 
 	bool init(int width = w, int height = h, const char* title = "sys::glfw")
 	{
