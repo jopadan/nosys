@@ -33,6 +33,7 @@ namespace sys
 		s32    idx = 1;
 		std::array<s32, 2> sze = { 15, 15 };
 	} font;
+
 	struct
 	{
 		void set_perspective()
@@ -61,6 +62,7 @@ namespace sys
 				  0.0f,   1.0f, 0.0f);
 		}
 	} cam;
+
 	struct
 	{
 		f64 now;
@@ -92,9 +94,12 @@ namespace sys
 			cam.set_perspective();
 		}
 	} time;
+
 	struct
 	{
 		geo::box<float> test_cube;
+		std::vector<scene> scenes;
+
 		void clr()
 		{
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -221,10 +226,7 @@ namespace sys
 	bool tick()
 	{
 		time.tick();
-		if (glfwGetKey(win, GLFW_KEY_UP))
-			zoom(win, 0, 1.0/128);
-		else if (glfwGetKey(win, GLFW_KEY_DOWN))
-			zoom(win, 0, -1.0/128);
+
 		if (glfwWindowShouldClose(win) || glfwGetKey(win, GLFW_KEY_ESCAPE))
 			return false;
 		return true;

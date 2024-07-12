@@ -12,28 +12,29 @@ Platform independent framework based on:
 # Usage
 
 ```c++
-#include <NoSYS/glfw.hpp>
+
+#include "NoSYS/glfw.hpp"
 
 col::u16<5,6,5> bfcolor = { 12, 23, 26 };
 col::u8<4>      vccolor = (col::u8<4>)bfcolor;
-geo::box<f32>   cube;
+
 
 int main(int argc, char** argv)
 {
-    sys::init();
-    while(sys::tick())
-    {
-        sys::sclr();
+	sys::init();
 
-        glRotatef((f32)sys::time.now * 100.0f, 1.0f, 0.0f, 1.0f);
-        cube.draw();
+	std::cout << sys::view.test_cube;
 
-        sys::time.draw_fps();
-        sys::swap();
-    }
-    sys::halt();
-    exit(SUCCESS);
+	while(sys::tick())
+	{
+		sys::view.clr();
+		sys::view.draw_test();
 
+		sys::time.draw_fps();
+		sys::swap();
+	}
+	sys::halt();
+	exit(EXIT_SUCCESS);
 }
 ```
 

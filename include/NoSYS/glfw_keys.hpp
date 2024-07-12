@@ -184,9 +184,30 @@ void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	printf("key: %s action: %d mods: %X\n", glfwGetKeyName(key, scancode), action, mods);
 
-	if(key == key_escape && action == key_press)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-
-	if(key == key_f12 && action == key_press)
-		grab();
+	if(action == key_press)
+	{
+		switch(key)
+		{
+			case key_escape:
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+				break;
+			case key_f12:
+				grab();
+				break;
+			case key_up:
+				zoom(win, 0,  1.0/128);
+				break;
+			case key_down:
+				zoom(win, 0, -1.0/128);
+				break;
+			case key_left:
+				zoom(win, -1.0/128, 0);
+				break;
+			case key_right:
+				zoom(win,  1.0/128, 0);
+				break;
+			default:
+				break;
+		}
+	};
 }
