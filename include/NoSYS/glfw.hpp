@@ -25,6 +25,7 @@ namespace sys
 	GLFWwindow*               win = nullptr; /* system window                  */
 	s32                       w   =    320u; /* screen width                   */
 	s32                       h   =    240u; /* screen height                  */
+	f32		aspect_ratio  = (sca::f32)320/(sca::f32)240;
 	f32                       z   =    1.0f; /* mouse wheel scroll zoom z-axis */
 
 	struct
@@ -32,6 +33,34 @@ namespace sys
 		s32    idx = 1;
 		std::array<s32, 2> sze = { 15, 15 };
 	} font;
+	struct
+	{
+		void set_perspective()
+		{
+			glViewport(0, 0, w, h);
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			gluPerspective( 65.0f, aspect_ratio, 0.0f, 100.0f);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+		}
+		void set_ortho2d()
+		{
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			gluOrtho2D(0., w, 0., h);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glDisable(GL_LIGHTING);
+			glColor3f(1.0f, 1.0f, 1.0f);
+		}
+		void look_at()
+		{
+			gluLookAt(0.0f,   0.0f, 3.0f * z,
+		        	  0.0f,   0.0f, 0.0f,
+				  0.0f,   1.0f, 0.0f);
+		}
+	} cam;
 	struct
 	{
 		f64 now;
@@ -57,19 +86,52 @@ namespace sys
 		}
 		void draw_fps()
 		{
-			glPushMatrix();
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			gluOrtho2D(0., w, 0., h);
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glDisable(GL_LIGHTING);
-			glColor3f(1.0f, 1.0f, 1.0f);
+			cam.set_ortho2d();
 			glRasterPos2f(w - font.sze[0] * 4, h - font.sze[1]);
 			glcRenderString(fps.data());
-			glPopMatrix();
+			cam.set_perspective();
 		}
 	} time;
+	struct
+	{
+		geo::box<float> test_cube;
+		void clr()
+		{
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+		void pre()
+		{
+			cam.look_at();
+			vec::f32<4> pos = { 0.0f, 0.0f, 3.0f * z, 1.0f };
+			vec::f32<4> col = { 1.0f, 1.0f, 1.0f, 1.0f };
+			glLightfv(GL_LIGHT0, GL_POSITION, (sca::f32*)&pos);
+			glLightfv(GL_LIGHT0, GL_AMBIENT, (sca::f32*)&pos);
+			glEnable(GL_LIGHTING);
+			glEnable(GL_LIGHT0);
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_LEQUAL);
+			glDepthMask(GL_TRUE);
+			glEnable(GL_FOG);
+			glFogi(GL_FOG_MODE, GL_EXP);
+			glFogf(GL_FOG_DENSITY, 0.1f);
+			glFogfv(GL_FOG_COLOR, (sca::f32*)&col);
+		}
+		void post()
+		{
+		}
+		void draw()
+		{
+			pre();
+			post();
+		}
+		void draw_test()
+		{
+			pre();
+			glRotatef((f32)time.now * 100.0f, 1.0f, 0.0f, 1.0f);
+			test_cube.draw();
+			post();
+		}
+	} view;
 
 	bool grab(std::filesystem::path filepath = "screenshot.png")
 	{
@@ -102,27 +164,11 @@ namespace sys
 
 	void size(GLFWwindow* window, int width, int height)
 	{
-		glViewport(0, 0, width, height);
 		w = width;
 		h = height;
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective( 65.0f, (sca::f32)w/(sca::f32)h, 0.0f, 100.0f);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		gluLookAt(0.0f,   0.0f, 3.0f * z,
-		          0.0f,   0.0f, 0.0f,
-		          0.0f,   1.0f, 0.0f);
-		vec::f32<4> pos = { 0.0f, 0.0f, 3.0f * z, 1.0f };
-		vec::f32<4> col = { 1.0f, 1.0f, 1.0f, 1.0f };
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
+		aspect_ratio = (sca::f32)w / (sca::f32)h;
+		cam.set_perspective();
 		printf("Resolution changed: %dx%d\n", w, h);
-	}
-
-	void sclr()
-	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	bool init(int width = w, int height = h, const char* title = "sys::glfw")
@@ -155,11 +201,11 @@ namespace sys
 		gladLoadGL(glfwGetProcAddress);
 		glfwGetFramebufferSize(win, &w, &h);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.f);
+		size(win, width, height);
 		glcContext(glcGenContext());
 		glcScale(font.sze[0], font.sze[1]);
 		glcFont(font.idx);
 		glcNewFontFromFamily(1, "Times");
-		size(win, width, height);
 		return true;
 	}
 
@@ -175,6 +221,10 @@ namespace sys
 	bool tick()
 	{
 		time.tick();
+		if (glfwGetKey(win, GLFW_KEY_UP))
+			zoom(win, 0, 1.0/128);
+		else if (glfwGetKey(win, GLFW_KEY_DOWN))
+			zoom(win, 0, -1.0/128);
 		if (glfwWindowShouldClose(win) || glfwGetKey(win, GLFW_KEY_ESCAPE))
 			return false;
 		return true;
