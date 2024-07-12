@@ -36,7 +36,7 @@ namespace sys
 
 	struct
 	{
-		void set_perspective()
+		void perspective()
 		{
 			glViewport(0, 0, w, h);
 			glMatrixMode(GL_PROJECTION);
@@ -45,7 +45,7 @@ namespace sys
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
 		}
-		void set_ortho2d()
+		void ortho2d()
 		{
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
@@ -88,10 +88,10 @@ namespace sys
 		}
 		void draw_fps()
 		{
-			cam.set_ortho2d();
+			cam.ortho2d();
 			glRasterPos2f(w - font.sze[0] * 4, h - font.sze[1]);
 			glcRenderString(fps.data());
-			cam.set_perspective();
+			cam.perspective();
 		}
 	} time;
 
@@ -170,7 +170,7 @@ namespace sys
 		w = width;
 		h = height;
 		aspect_ratio = (sca::f32)w / (sca::f32)h;
-		cam.set_perspective();
+		cam.perspective();
 		printf("Resolution changed: %dx%d\n", w, h);
 	}
 
