@@ -97,7 +97,9 @@ namespace sys
 
 	struct
 	{
-		geo::box<float> test_cube;
+		geo::box<f32> test_cube;
+//		scene_graph world;
+//		menu_graph menu;
 
 		void clr()
 		{
