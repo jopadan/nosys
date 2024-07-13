@@ -5,6 +5,7 @@
 #include <string>
 #include <filesystem>
 #include <iostream>
+#include <sys/utsname.h>
 #define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
@@ -28,7 +29,7 @@ namespace sys
 	f32		aspect_ratio  = (sca::f32)320/(sca::f32)240;
 	f32                       z   =    1.0f; /* mouse wheel scroll zoom z-axis */
 	f32                       x   =    0.0f; /* x-axis center rotate/translate */
-
+	std::string info = "SIMD: ";
 	struct
 	{
 		s32    idx = 1;
@@ -45,6 +46,7 @@ namespace sys
 			gluPerspective( 65.0f, aspect_ratio, 0.0f, 100.0f);
 			glMatrixMode(GL_MODELVIEW);
 			glLoadIdentity();
+			glEnable(GL_LIGHTING);
 		}
 		void ortho2d()
 		{
@@ -71,7 +73,14 @@ namespace sys
 		f64 delta;
 		u64 frames;
 		std::array<char, 8> fps;
+		time_t t;
+		std::string t_str;
 		inline f64 get() { return glfwGetTime(); }
+		void local()
+		{
+			t = time(NULL);
+			t_str = ctime(&t);
+		}
 
 		bool tick()
 		{
@@ -82,6 +91,7 @@ namespace sys
 			{
 				fps = { '\0' };
 				snprintf(fps.data(), 8, "%3hufps", (u16)frames);
+				local();
 				frames = 0;
 				last = now;
 			}
@@ -90,6 +100,10 @@ namespace sys
 		void draw_fps()
 		{
 			cam.ortho2d();
+			glRasterPos2f(0, h - font.sze[1]);
+			glcRenderString(t_str.c_str());
+			glRasterPos2f(0, 1);
+			glcRenderString(info.c_str());
 			glRasterPos2f(w - font.sze[0] * 4, h - font.sze[1]);
 			glcRenderString(fps.data());
 			cam.perspective();
@@ -113,7 +127,6 @@ namespace sys
 			vec::f32<4> col = { 1.0f, 1.0f, 1.0f, 1.0f };
 			glLightfv(GL_LIGHT0, GL_POSITION, (sca::f32*)&pos);
 			glLightfv(GL_LIGHT0, GL_AMBIENT, (sca::f32*)&pos);
-			glEnable(GL_LIGHTING);
 			glEnable(GL_LIGHT0);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LEQUAL);
@@ -142,15 +155,15 @@ namespace sys
 
 	bool grab(std::filesystem::path filepath = "screenshot.png")
 	{
-		std::vector<col::u8<3>> pixels(w * h);
+		std::vector<col::u8<4>> pixels(w * h);
 		GLint pack_alignment;
 		glGetIntegerv(GL_PACK_ALIGNMENT, &pack_alignment);
 		glPixelStorei(GL_PACK_ALIGNMENT, 4);
 		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, &pixels.front());
+		glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &pixels.front());
 		glPixelStorei(GL_PACK_ALIGNMENT, pack_alignment);
 
-		sail::image image(pixels.data(), SAIL_PIXEL_FORMAT_BPP24_RGB, w, h, w * sizeof(pixels[0]));
+		sail::image image(pixels.data(), SAIL_PIXEL_FORMAT_BPP32_RGBA, w, h, w * sizeof(pixels[0]));
 		/* flip vertically */
 		image.mirror(SAIL_ORIENTATION_MIRRORED_VERTICALLY);
 		/* write image to filepath */
@@ -183,7 +196,23 @@ namespace sys
 	bool init(int width = w, int height = h, const char* title = "sys::glfw")
 	{
 		const char* description;
-
+		#if   defined (__AVX2__)
+		info += " AVX2";
+		#elif defined (__AVX__)
+		info += " AVX";
+		#elif defined (__SSE42__)
+		info += " SSE4_2";
+		#elif defined (__SSE41__)
+		info += " SSE4_1";
+		#elif defined (__SSSE3__)
+		info += " SSSE3";
+		#elif defined (__SSE3__)
+		info += " SSE3";
+		#elif defined (__SSE2__)
+		info += " SSE2";
+		#elif defined (__SSE__)
+		info += " SSE";
+		#endif
 		if (!glfwInit())
 		{
 			glfwGetError(&description);
