@@ -27,6 +27,7 @@ namespace sys
 	s32                       h   =    240u; /* screen height                  */
 	f32		aspect_ratio  = (sca::f32)320/(sca::f32)240;
 	f32                       z   =    1.0f; /* mouse wheel scroll zoom z-axis */
+	f32                       x   =    0.0f; /* x-axis center rotate/translate */
 
 	struct
 	{
@@ -58,7 +59,7 @@ namespace sys
 		void look_at()
 		{
 			gluLookAt(0.0f,   0.0f, 3.0f * z,
-		        	  0.0f,   0.0f, 0.0f,
+		        	  1.0f * x,   0.0f, 0.0f,
 				  0.0f,   1.0f, 0.0f);
 		}
 	} cam;
@@ -160,11 +161,12 @@ namespace sys
 	}
 
 
-	void zoom(GLFWwindow* window, f64 x, f64 y)
+	void zoom(GLFWwindow* window, f64 _x, f64 _y)
 	{
-		z += (f32)y / 8.0f;
+		z += (f32)_y / 8.0f;
+		x += (f32)_x / 8.0f;
 		if(z < 0) z = 0;
-		printf("%f\n", z);
+		printf("%f %f\n", x, z);
 	}
 
 	void size(GLFWwindow* window, int width, int height)

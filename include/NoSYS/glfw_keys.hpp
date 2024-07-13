@@ -201,10 +201,10 @@ void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 				zoom(win, 0.0, -1.0);
 				break;
 			case key_left:
-				zoom(win, -1.0, 0);
+				zoom(win,  1.0, 0);
 				break;
 			case key_right:
-				zoom(win,  1.0, 0);
+				zoom(win,  -1.0, 0);
 				break;
 			default:
 				break;
