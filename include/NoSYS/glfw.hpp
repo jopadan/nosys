@@ -151,6 +151,11 @@ namespace sys
 			test_cube.draw();
 			post();
 		}
+		void swap()
+		{
+			glfwSwapBuffers(win);
+			glfwPollEvents();
+		}
 	} view;
 
 	bool grab(std::filesystem::path filepath = "screenshot.png")
@@ -265,9 +270,4 @@ namespace sys
 		return true;
 	}
 
-	void swap()
-	{
-		glfwSwapBuffers(win);
-		glfwPollEvents();
-	}
 }

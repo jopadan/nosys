@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 		sys::view.draw_test();
 
 		sys::time.draw_fps();
-		sys::swap();
+		sys::view.swap();
 	}
 	sys::halt();
 	exit(EXIT_SUCCESS);
