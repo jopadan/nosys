@@ -112,7 +112,7 @@ namespace sys
 
 	struct
 	{
-		geo::box<f32> test_cube;
+		geo::box<f32, GL_QUADS, GL_CCW> test_cube;
 //		scene_graph world;
 //		menu_graph menu;
 

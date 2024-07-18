@@ -15,8 +15,8 @@ Platform independent framework based on:
 
 #include "NoSYS/glfw.hpp"
 
-col::u16<5,6,5> bfcolor = { 12, 23, 26 };
-col::u8<4>      vccolor = (col::u8<4>)bfcolor;
+col::u16<col::rgb, 5,6,5> bfcolor = { 12, 23, 26 };
+col::u8<4, col::rgba>     vccolor = (col::u8<4, col::rgba>)bfcolor;
 
 
 int main(int argc, char** argv)
