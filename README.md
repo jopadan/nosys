@@ -1,4 +1,4 @@
-# NoSYS
+# nosys
 
 Platform independent framework based on:
 
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 - [QuesoGLC]
 - [SAIL]
 
-[MLR]: https://codeberg.org/forcemaster/mlr
+[MLR]: https://github.com/jopadan/mlr
 [GLFW]: https://github.com/glfw/glfw
 [QuesoGLC]: https://sourceforge.net/projects/quesoglc/
 [SAIL]: https://github.com/HappySeaFox/sail
