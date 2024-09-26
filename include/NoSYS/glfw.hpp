@@ -18,15 +18,15 @@
 #include <sail-c++/sail-c++.h>
 #include <sail-c++/image_output.h>
 
-using namespace math;
-using namespace math::sca;
+using namespace math::la;
+using namespace math::la::typ;
 
 namespace sys
 {
 	GLFWwindow*               win = nullptr; /* system window                  */
 	s32                       w   =    320u; /* screen width                   */
 	s32                       h   =    240u; /* screen height                  */
-	f32		aspect_ratio  = (sca::f32)320/(sca::f32)240;
+	f32		aspect_ratio  = (f32)320/(f32)240;
 	f32                       z   =    1.0f; /* mouse wheel scroll zoom z-axis */
 	f32                       x   =    0.0f; /* x-axis center rotate/translate */
 	std::string info = "SIMD: ";
@@ -125,8 +125,8 @@ namespace sys
 			cam.look_at();
 			vec::f32<4> pos = { 0.0f, 0.0f, 3.0f * z, 1.0f };
 			vec::f32<4> col = { 1.0f, 1.0f, 1.0f, 1.0f };
-			glLightfv(GL_LIGHT0, GL_POSITION, (sca::f32*)&pos);
-			glLightfv(GL_LIGHT0, GL_AMBIENT, (sca::f32*)&pos);
+			glLightfv(GL_LIGHT0, GL_POSITION, (f32*)&pos);
+			glLightfv(GL_LIGHT0, GL_AMBIENT, (f32*)&pos);
 			glEnable(GL_LIGHT0);
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LEQUAL);
@@ -134,7 +134,7 @@ namespace sys
 			glEnable(GL_FOG);
 			glFogi(GL_FOG_MODE, GL_EXP);
 			glFogf(GL_FOG_DENSITY, 0.1f);
-			glFogfv(GL_FOG_COLOR, (sca::f32*)&col);
+			glFogfv(GL_FOG_COLOR, (f32*)&col);
 		}
 		void post()
 		{
@@ -191,7 +191,7 @@ namespace sys
 	{
 		w = width;
 		h = height;
-		aspect_ratio = (sca::f32)w / (sca::f32)h;
+		aspect_ratio = (f32)w / (f32)h;
 		cam.perspective();
 		printf("Resolution changed: %dx%d\n", w, h);
 	}
