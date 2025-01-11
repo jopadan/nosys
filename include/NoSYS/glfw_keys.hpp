@@ -180,6 +180,35 @@ joystick_hat_left_up            = GLFW_HAT_LEFT_UP,
 joystick_hat_left_down          = GLFW_HAT_LEFT_DOWN,
 };
 
+void scroll(GLFWwindow* window, f64 _x, f64 _y)
+{
+	zoom += (f32) _y / 4.0f;
+	if(zoom < 1.25f) zoom = 1.25f;
+	printf("zoom: %f\n", zoom);
+}
+
+void mouse(GLFWwindow* window, int button, int action, int mods)
+{
+	if(button != GLFW_MOUSE_BUTTON_LEFT)
+		return;
+	if(action == GLFW_PRESS)
+	{
+		glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwGetCursorPos(win, &cursor_x, &cursor_y);
+	}
+	else
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+void cursor(GLFWwindow* window, double x, double y)
+{
+	if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+	{
+		alpha += (f32)(x-cursor_x) / 10.0f;
+		beta  += (f32)(y-cursor_y) / 10.0f;
+		cursor_x = x;
+		cursor_y = y;
+	}
+}
 void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	printf("key: %s action: %d mods: %X\n", glfwGetKeyName(key, scancode), action, mods);
@@ -192,19 +221,33 @@ void keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
 				break;
 			case key_f12:
-				grab();
+				//grab();
 				break;
 			case key_up:
-				zoom(win, 0.0,  1.0);
+				beta -= 5;
+				printf("beta: %f\n", beta);
 				break;
 			case key_down:
-				zoom(win, 0.0, -1.0);
+				beta += 5;
+				printf("beta: %f\n", beta);
 				break;
 			case key_left:
-				zoom(win,  1.0, 0);
+				alpha += 5;
+				printf("alpha: %f\n", alpha);
 				break;
 			case key_right:
-				zoom(win,  -1.0, 0);
+				alpha -= 5;
+				printf("alpha: %f\n", alpha);
+				break;
+			case GLFW_KEY_PAGE_UP:
+				zoom -= 0.25f;
+				if(zoom <= 1.25f)
+					zoom = 1.25f;
+				printf("zoom: %f\n", zoom);
+				break;
+			case GLFW_KEY_PAGE_DOWN:
+				zoom += 0.25f;
+				printf("zoom: %f\n", zoom);
 				break;
 			default:
 				break;

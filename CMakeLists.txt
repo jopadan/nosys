@@ -20,16 +20,18 @@ add_compile_options(-ffunction-sections)
 add_compile_options(-Wall)
 #add_compile_options(-Wextra)
 add_compile_options(-Wpedantic)
-add_link_options(-Wl,--gc-sections)
-add_link_options(-Wl,--print-gc-sections)
-add_link_options(-Wl,-s)
+#add_link_options(-Wl,--gc-sections)
+#add_link_options(-Wl,--print-gc-sections)
+#add_link_options(-Wl,-s)
 
 find_package(PkgConfig)
 find_package(OpenGL)
+find_package(fmt)
+find_package(lfreist-hwinfo)
 check_include_file_cxx(MLR/mlr.h MLR_FOUND REQUIRED)
 pkg_check_modules(GLFW IMPORTED_TARGET REQUIRED glfw3)
-pkg_check_modules(GLC  IMPORTED_TARGET REQUIRED quesoglc)
-pkg_check_modules(SAIL IMPORTED_TARGET REQUIRED sail-c++)
+#pkg_check_modules(GLC  IMPORTED_TARGET REQUIRED quesoglc)
+#pkg_check_modules(SAIL IMPORTED_TARGET REQUIRED sail-c++)
 
 add_library( NoSYS INTERFACE )
 target_include_directories( NoSYS INTERFACE
@@ -42,7 +44,7 @@ target_include_directories( NoSYS INTERFACE
 )
 
 add_executable( example examples/example.cpp )
-target_link_libraries( example NoSYS OpenGL::OpenGL OpenGL::GLU PkgConfig::GLFW PkgConfig::GLC PkgConfig::SAIL)
+target_link_libraries( example NoSYS OpenGL::OpenGL OpenGL::GLU PkgConfig::GLFW fmt::fmt lfreist-hwinfo::hwinfo)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/NoSYS DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers
