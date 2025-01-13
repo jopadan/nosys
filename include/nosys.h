@@ -335,6 +335,27 @@ void sys_draw_pre()
 
 void sys_draw_post()
 {
+	printf("\r%s %s %s", s->info.date, s->info.sys, s->info.fps);
+}
+
+bool sys_draw_test(struct sys_t* s)
+{
+	sys_draw_pre();
+	glPushMatrix();
+	glRotatef(s->beta , 1.0f, 0.0f, 0.0f);
+	glRotatef((GLfloat)glfwGetTime() * s->alpha, 0.0f, 0.0f, 1.0f);
+	glBegin(GL_QUADS);
+	glColor4f(1.0f,0.0f,0.0f,1.0f);
+	glVertex4f(0.5f,-0.5f,0.0f,1.0f);
+	glColor4f(0.0f,0.5f,0.0f,1.0f);
+	glVertex4f(0.5f,0.5f,0.0f,1.0f);
+	glVertex4f(-0.5f, 0.5f,0.0f,1.0f);
+	glColor4f(0.0f,0.0f,1.0f,1.0f);
+	glVertex4f(-0.5f,-0.5f,0.0f,1.0f);
+	glEnd();
+	glPopMatrix();
+	sys_draw_post();
+	return true;
 }
 
 bool sys_draw(struct sys_t* s)
