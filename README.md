@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 
     do
     {
-    } while(sys_clr(sys) && sys_draw(sys) && sys_swap(sys));
+    } while(sys_clr(sys) && sys_draw_test(sys) && sys_swap(sys));
 
     exit(sys_halt(sys) && sys_free(sys) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
