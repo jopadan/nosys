@@ -62,7 +62,7 @@ bool sys_make(int width, int height, const char* title)
 	{
 		sys->w = width;
 		sys->h = height;
-		sys->aspect_ratio = (float)sys->w/(float)sys->h;
+		sys->aspect_ratio = sys->h > 0 ? (float)sys->w/(float)sys->h : 1.f;
 		sys->title = title;
 		sys->info.timer.fps    = 0;
 		sys->info.timer.frames = 0;
