@@ -1,50 +1,31 @@
 # nosys
 
-Platform independent framework based on:
+Platform independent C/C++ demo/game framework based on:
 
 - [GLFW] platform abstraction framework
-- [QuesoGLC] opengl font library
-- [SAIL] image load/save library
-- [MLR] linear algebra math library
 
 ![screenshot](assets/images/screenshot.png "screenshot")
 
 # Usage
 
-```c++
-
-#include "NoSYS/glfw.hpp"
-
-col::u16<col::rgb, 5,6,5> bfcolor = { 12, 23, 26 };
-col::u8<4, col::rgba>     vccolor = (col::u8<4, col::rgba>)bfcolor;
-
+```c
+#include <nosys.h>
 
 int main(int argc, char** argv)
 {
-	sys::init();
+    sys_make(320,240,"sys_glfw");
 
-	std::cout << sys::view.test_cube;
+	sys_init(sys);
 
-	while(sys::tick())
-	{
-		sys::view.clr();
-		sys::view.draw_test();
+    do
+    {
+    } while(sys_clr(sys) && sys_draw(sys) && sys_swap(sys));
 
-		sys::time.draw_fps();
-		sys::view.swap();
-	}
-	sys::halt();
-	exit(EXIT_SUCCESS);
+	exit(sys_halt(sys) && sys_free(sys) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 ```
 
 # Links
-- [MLR]
 - [GLFW]
-- [QuesoGLC]
-- [SAIL]
 
-[MLR]: https://github.com/jopadan/mlr
 [GLFW]: https://github.com/glfw/glfw
-[QuesoGLC]: https://sourceforge.net/projects/quesoglc/
-[SAIL]: https://github.com/HappySeaFox/sail

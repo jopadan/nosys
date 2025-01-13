@@ -63,7 +63,7 @@ namespace info
 		struct sigevent   sev;
 		sev.sigev_notify = SIGEV_SIGNAL;
 		sev.sigev_signo  = SIGRTMIN;
-		sev.sigev_value.sival_ptr = &timerid;
+		sev.sigev_value.sival_ptr = &sev;
 
 		if(timer_create(CLOCK_REALTIME,&sev,&timerid) == -1 || timer_settime(timerid, 0, &its, nullptr) == -1)
 			return false;

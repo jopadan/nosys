@@ -1,0 +1,213 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <string.h>
+#include <signal.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/utsname.h>
+#include <sys/personality.h>
+#include <sys/time.h>
+#define GLAD_GL_IMPLEMENTATION
+#include <glad/gl.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#include <GL/gl.h>
+#include <GL/glcorearb.h>
+#include <GL/glu.h>
+
+struct sys_t
+{
+	const char* error;
+	const char* title;
+	GLFWwindow* win;
+	int w;
+	int h;
+	int aspect_ratio;
+	int bpp;
+	struct
+	{
+		struct {
+			clock_t clock;
+			time_t time;
+			timer_t id;
+			sigset_t mask;
+			struct itimerspec its;
+			uint64_t frames;
+			uint64_t fps;
+		} timer;
+		struct utsname arch;
+		int pers;
+		uint16_t bits;
+		bool running;
+		char* sys;
+		char* date;
+		char* fps;
+	} info;
+};
+
+struct sys_t* sys = NULL;
+
+bool sys_make(int width, int height, const char* title)
+{
+	sys = calloc(1, sizeof(struct sys_t));
+	if(sys != NULL)
+	{
+		sys->w = width;
+		sys->h = height;
+		sys->aspect_ratio = (float)sys->w/(float)sys->h;
+		sys->title = title;
+		sys->info.timer.fps = 0;
+		sys->info.timer.frames = 0;
+		return true;
+	}
+	return false;
+}
+
+bool sys_free(struct sys_t* s)
+{
+	if(s != NULL)
+	{
+		if(s->info.sys != NULL)
+		{
+			free(s->info.sys);
+			s->info.sys = NULL;
+		}
+		if(s->info.fps != NULL)
+		{
+			free(s->info.fps);
+			s->info.fps = NULL;
+		}
+		free(s);
+		s = NULL;
+		return true;
+	}
+	return false;
+}
+
+bool sys_date(struct sys_t* s)
+{
+	s->info.timer.time = time(NULL);
+	s->info.date = ctime(&s->info.timer.time);
+	s->info.date[strlen(s->info.date) - 1] = '\0';
+	return true;
+}
+
+void sys_perspective()
+{
+	glViewport(0,0,sys->w,sys->h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(65.f, sys->aspect_ratio, 0.5f, 1024.f);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glEnable(GL_LIGHTING);
+}
+
+void sys_size(GLFWwindow* window, int width, int height)
+{
+	sys->w = width;
+	sys->h = height;
+	sys->aspect_ratio = sys->h > 0 ? (float)sys->w / (float)sys->h : 1.f;
+	sys_perspective();
+	printf("Resolution changed: %dx%d\n", sys->w, sys->h);
+}
+
+void sys_fps(int sig, siginfo_t* si, void* uc)
+{
+	sys->info.timer.fps = sys->info.timer.frames;
+	sys->info.timer.frames = 0;
+	sys_date(sys);
+	asprintf(&sys->info.fps, "FPS: %-4zu", sys->info.timer.fps);
+}
+
+bool sys_info(struct sys_t* s)
+{
+	uname(&s->info.arch);
+	s->info.pers = personality(-1);
+	s->info.bits = sysconf(s->info.pers & PER_LINUX32 ? _SC_WORD_BIT : _SC_LONG_BIT);
+
+	if(asprintf(&s->info.sys, "%s-%s %s %hu-bit\0", s->info.arch.sysname, s->info.arch.release, s->info.arch.machine, s->info.bits) == -1)
+		return false;
+
+	s->info.timer.clock = CLOCK_REALTIME;
+	sys_date(s);
+
+	struct sigaction sa;
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = sys_fps;
+	sigemptyset(&sa.sa_mask);
+
+	if(sigaction(SIGRTMIN, &sa, NULL) == -1 || sigemptyset(&s->info.timer.mask) == -1 || sigaddset(&s->info.timer.mask, SIGRTMIN) == -1 || sigprocmask(SIG_SETMASK, &s->info.timer.mask, NULL) == -1)
+		return false;
+
+	struct sigevent sev;
+	sev.sigev_notify = SIGEV_SIGNAL;
+	sev.sigev_signo  = SIGRTMIN;
+	sev.sigev_value.sival_ptr = &s->win;
+
+	s->info.timer.its.it_interval.tv_sec = 1;
+	s->info.timer.its.it_interval.tv_nsec = 0;
+	s->info.timer.its.it_value.tv_sec  = 1;
+	s->info.timer.its.it_value.tv_nsec = 0;
+
+	if(timer_create(s->info.timer.clock,&sev,&s->info.timer.id) == -1 || timer_settime(s->info.timer.id, 0, &s->info.timer.its, NULL) == -1)
+		return false;
+	return true;
+}
+
+bool sys_init(struct sys_t* s)
+{
+	if(!glfwInit())
+	{
+		glfwGetError(&s->error);
+		printf("Error: %s\n", s->error);
+		exit(EXIT_FAILURE);
+	}
+	s->win = glfwCreateWindow(sys->w, sys->h, sys->title, NULL, NULL);
+	if(!s->win)
+	{
+		glfwGetError(&s->error);
+		printf("Error: %s\n", s->error);
+		glfwTerminate();
+	}
+
+	glfwSetFramebufferSizeCallback(s->win, sys_size);
+	glfwGetFramebufferSize(s->win, &s->w, &s->h);
+	glfwMakeContextCurrent(s->win);
+	gladLoadGL(glfwGetProcAddress);
+	glfwSwapInterval(0);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	sys_size(s->win, s->w, s->h);
+	return sys_info(s);
+}
+
+bool sys_halt(struct sys_t* s)
+{
+	glfwTerminate();
+	return true;
+}
+
+bool sys_swap(struct sys_t* s)
+{
+	glfwSwapBuffers(s->win);
+	glfwPollEvents();
+	if(sigprocmask(SIG_UNBLOCK, &s->info.timer.mask, NULL) != -1)
+		s->info.timer.frames++;
+	return !glfwWindowShouldClose(s->win);
+}
+
+bool sys_clr(struct sys_t* s)
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	return true;
+}
+
+bool sys_draw(struct sys_t* s)
+{
+	printf("\r%s %s %s", s->info.date, s->info.sys, s->info.fps);
+	return true;
+}
+
