@@ -310,7 +310,7 @@ bool sys_clr(struct sys_t* s)
 	return true;
 }
 
-void sys_draw_pre()
+bool sys_draw_pre(struct sys_t* s)
 {
 	sys_look_at();
 	GLfloat pos[4] = { 0.0f, 0.0f, 3.0f, 1.0f };
@@ -331,16 +331,18 @@ void sys_draw_pre()
 	glFrontFace(GL_CCW);
 	glCullFace(GL_NONE);
 	glDisable(GL_CULL_FACE);
+	return true;
 }
 
-void sys_draw_post()
+bool sys_draw_post(struct sys_t* s)
 {
 	printf("\r%s %s %s", s->info.date, s->info.sys, s->info.fps);
+	return true;
 }
 
 bool sys_draw_test(struct sys_t* s)
 {
-	sys_draw_pre();
+	sys_draw_pre(s);
 	glPushMatrix();
 	glRotatef(s->beta , 1.0f, 0.0f, 0.0f);
 	glRotatef((GLfloat)glfwGetTime() * s->alpha, 0.0f, 0.0f, 1.0f);
@@ -354,14 +356,12 @@ bool sys_draw_test(struct sys_t* s)
 	glVertex4f(-0.5f,-0.5f,0.0f,1.0f);
 	glEnd();
 	glPopMatrix();
-	sys_draw_post();
-	return true;
+	return sys_draw_post(s);
 }
 
 bool sys_draw(struct sys_t* s)
 {
-	sys_draw_pre();
-	sys_draw_post();
-	return true;
+	sys_draw_pre(s);
+	return sys_draw_post(s);
 }
 
