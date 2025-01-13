@@ -27,6 +27,11 @@ struct sys_t
 	int h;
 	int aspect_ratio;
 	int bpp;
+	GLdouble cursor_x;
+	GLdouble cursor_y;
+	GLfloat  alpha;
+	GLfloat  beta;
+	GLfloat  zoom;
 	struct
 	{
 		struct {
@@ -59,8 +64,11 @@ bool sys_make(int width, int height, const char* title)
 		sys->h = height;
 		sys->aspect_ratio = (float)sys->w/(float)sys->h;
 		sys->title = title;
-		sys->info.timer.fps = 0;
+		sys->info.timer.fps    = 0;
 		sys->info.timer.frames = 0;
+		sys->alpha             = 210.0f;
+		sys->beta              = -70.0f;
+		sys->zoom              =   2.0f;
 		return true;
 	}
 	return false;
@@ -105,7 +113,99 @@ void sys_perspective()
 	glLoadIdentity();
 	glEnable(GL_LIGHTING);
 }
+void sys_ortho2d()
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0., sys->w, 0., sys->h);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_LIGHTING);
+	glColor3f(1.0f, 1.0f, 1.0f);
+}
+void sys_look_at()
+{
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0.0f, 0.0f, sys->zoom,
+	          0.0f, 0.0f, 0.0f,
+	          0.0f, 1.0f, 0.0f);
+}
 
+void sys_scroll(GLFWwindow* window, GLdouble _x, GLdouble _y)
+{
+	sys->zoom += (GLfloat) _y / 4.0f;
+	if(sys->zoom < 1.25f) sys->zoom = 1.25f;
+	printf("zoom: %f\n", sys->zoom);
+}
+
+void sys_mouse(GLFWwindow* window, int button, int action, int mods)
+{
+	if(button != GLFW_MOUSE_BUTTON_LEFT)
+		return;
+	if(action == GLFW_PRESS)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwGetCursorPos(window, &sys->cursor_x, &sys->cursor_y);
+	}
+	else
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+void sys_cursor(GLFWwindow* window, double x, double y)
+{
+	if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+	{
+		sys->alpha += (GLfloat)(x-sys->cursor_x) / 10.0f;
+		sys->beta  += (GLfloat)(y-sys->cursor_y) / 10.0f;
+		sys->cursor_x = x;
+		sys->cursor_y = y;
+	}
+}
+void sys_keys(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	printf("key: %s action: %d mods: %X\n", glfwGetKeyName(key, scancode), action, mods);
+
+	if(action == GLFW_PRESS || action == GLFW_REPEAT)
+	{
+		switch(key)
+		{
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(window, GLFW_TRUE);
+				break;
+			case GLFW_KEY_F12:
+				//grab();
+				break;
+			case GLFW_KEY_UP:
+				sys->beta -= 5;
+				printf("beta: %f\n", sys->beta);
+				break;
+			case GLFW_KEY_DOWN:
+				sys->beta += 5;
+				printf("beta: %f\n", sys->beta);
+				break;
+			case GLFW_KEY_LEFT:
+				sys->alpha += 5;
+				printf("alpha: %f\n", sys->alpha);
+				break;
+			case GLFW_KEY_RIGHT:
+				sys->alpha -= 5;
+				printf("alpha: %f\n", sys->alpha);
+				break;
+			case GLFW_KEY_PAGE_UP:
+				sys->zoom -= 0.25f;
+				if(sys->zoom <= 1.25f)
+					sys->zoom = 1.25f;
+				printf("zoom: %f\n", sys->zoom);
+				break;
+			case GLFW_KEY_PAGE_DOWN:
+				sys->zoom += 0.25f;
+				printf("zoom: %f\n", sys->zoom);
+				break;
+			default:
+				break;
+		}
+	}
+}
 void sys_size(GLFWwindow* window, int width, int height)
 {
 	sys->w = width;
@@ -174,8 +274,13 @@ bool sys_init(struct sys_t* s)
 		glfwTerminate();
 	}
 
+	glfwSetInputMode(s->win, GLFW_STICKY_KEYS, GLFW_TRUE);
 	glfwSetFramebufferSizeCallback(s->win, sys_size);
 	glfwGetFramebufferSize(s->win, &s->w, &s->h);
+	glfwSetScrollCallback(s->win, sys_scroll);
+	glfwSetMouseButtonCallback(s->win, sys_mouse);
+	glfwSetCursorPosCallback(s->win, sys_cursor);
+	glfwSetKeyCallback(s->win, sys_keys);
 	glfwMakeContextCurrent(s->win);
 	gladLoadGL(glfwGetProcAddress);
 	glfwSwapInterval(0);
@@ -205,9 +310,37 @@ bool sys_clr(struct sys_t* s)
 	return true;
 }
 
+void sys_draw_pre()
+{
+	sys_look_at();
+	GLfloat pos[4] = { 0.0f, 0.0f, 3.0f, 1.0f };
+	GLfloat col[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, pos);
+	glEnable(GL_LIGHT0);
+
+	glEnable(GL_FOG);
+	glFogi(GL_FOG_MODE, GL_EXP);
+	glFogf(GL_FOG_DENSITY, 0.1f);
+	glFogfv(GL_FOG_COLOR, col);
+
+	glEnable(GL_COLOR_MATERIAL);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_TRUE);
+	glFrontFace(GL_CCW);
+	glCullFace(GL_NONE);
+	glDisable(GL_CULL_FACE);
+}
+
+void sys_draw_post()
+{
+}
+
 bool sys_draw(struct sys_t* s)
 {
-	printf("\r%s %s %s", s->info.date, s->info.sys, s->info.fps);
+	sys_draw_pre();
+	sys_draw_post();
 	return true;
 }
 
