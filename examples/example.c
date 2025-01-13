@@ -10,8 +10,5 @@ int main(int argc, char** argv)
 	{
 	} while(sys_clr(sys) && sys_draw(sys) && sys_swap(sys));
 
-	sys_halt(sys);
-	sys_free(sys);
-
-	exit(EXIT_SUCCESS);
+	exit(sys_halt(sys) && sys_free(sys) ? EXIT_SUCCESS : EXIT_FAILURE);
 }
