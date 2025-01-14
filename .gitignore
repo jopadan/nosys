@@ -13,3 +13,5 @@ _deps
 example
 example_c
 screenshot.png
+screenshot.raw
+screenshot.*

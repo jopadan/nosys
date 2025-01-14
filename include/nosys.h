@@ -39,7 +39,8 @@ struct sys_t
 	{
 		struct {
 			clock_t clock;
-			time_t time;
+			uint64_t freq;
+			struct timespec time;
 			timer_t id;
 			sigset_t mask;
 			struct itimerspec its;
@@ -53,6 +54,7 @@ struct sys_t
 		char* sys;
 		char* date;
 		char* fps;
+		char* simd;
 	} info;
 	struct
 	{
@@ -79,6 +81,8 @@ extern inline bool sys_make(int width, int height, const char* title)
 		sys->h = height;
 		sys->aspect_ratio = sys->h > 0 ? (float)sys->w/(float)sys->h : 1.f;
 		sys->title = title;
+		sys->info.timer.clock  = CLOCK_REALTIME;
+		sys->info.timer.freq   = 1 << 10;
 		sys->info.timer.fps    = 0;
 		sys->info.timer.frames = 0;
 		sys->alpha             = 210.0f;
@@ -88,6 +92,7 @@ extern inline bool sys_make(int width, int height, const char* title)
 		sys->font.w            = 10;
 		sys->font.h            = 10;
 		sys->screenshot.name   = "screenshot.raw";
+		sys->info.simd         = "sse4_2";
 		return true;
 	}
 	return false;
@@ -116,8 +121,8 @@ extern inline bool sys_free(struct sys_t* s)
 
 extern inline bool sys_date(struct sys_t* s)
 {
-	s->info.timer.time = time(NULL);
-	s->info.date = ctime(&s->info.timer.time);
+	clock_gettime(s->info.timer.clock, &s->info.timer.time);
+	s->info.date = ctime(&s->info.timer.time.tv_sec);
 	s->info.date[strlen(s->info.date) - 1] = '\0';
 	return true;
 }
@@ -205,11 +210,11 @@ extern inline void sys_cursor(GLFWwindow* window, double x, double y)
 	}
 }
 
-extern inline void sys_io_gauge()
+extern inline char sys_tui_spinner()
 {
 	static size_t i = 0;
 	static char rotor[4] = "\\|/-";
-	printf("%c", rotor[i++ % 4]);
+	return rotor[i++ % 4];
 }
 
 extern inline bool sys_screenshot(struct sys_t* s)
@@ -226,11 +231,10 @@ extern inline bool sys_screenshot(struct sys_t* s)
 
 	size_t i = 0;
 	size_t written = 0;
-	size_t block_size = 4;
+	size_t block_size = 32;
 	while(written < count * 4)
 	{
-		printf("\rWriting %s: ", s->screenshot.name);
-		sys_io_gauge();
+		printf("\rWriting %s: %c", s->screenshot.name, sys_tui_spinner());
 		ssize_t out = fwrite(pixels, 1, block_size, of);
 		if(out <= 0)
 			break;
@@ -241,6 +245,7 @@ extern inline bool sys_screenshot(struct sys_t* s)
 
 	return true;
 }
+
 extern inline void sys_keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	printf("key: %s action: %d mods: %X\n", glfwGetKeyName(key, scancode), action, mods);
@@ -300,7 +305,7 @@ extern inline void sys_fps(int sig, siginfo_t* si, void* uc)
 	sys->info.timer.fps = sys->info.timer.frames;
 	sys->info.timer.frames = 0;
 	sys_date(sys);
-	asprintf(&sys->info.fps, "FPS: %-4zu", sys->info.timer.fps);
+	asprintf(&sys->info.fps, "FPS: %zu", sys->info.timer.fps);
 }
 
 extern inline bool sys_info(struct sys_t* s)
@@ -309,7 +314,7 @@ extern inline bool sys_info(struct sys_t* s)
 	s->info.pers = personality(-1);
 	s->info.bits = sysconf(s->info.pers & PER_LINUX32 ? _SC_WORD_BIT : _SC_LONG_BIT);
 
-	if(asprintf(&s->info.sys, "%s-%s %s %hu-bit\0", s->info.arch.sysname, s->info.arch.release, s->info.arch.machine, s->info.bits) == -1)
+	if(asprintf(&s->info.sys, "%s-%s %s %hu-bit %s\0", s->info.arch.sysname, s->info.arch.release, s->info.arch.machine, s->info.bits, s->info.simd) == -1)
 		return false;
 
 	s->info.timer.clock = CLOCK_REALTIME;
@@ -422,9 +427,9 @@ extern inline bool sys_draw_post(struct sys_t* s)
 {
 	
 	sys_font_pre();
-	sys_font(s->info.date, 0, s->h - 10);
-	sys_font(s->info.sys, 0, 0);
-	sys_font(s->info.fps, s->w - 50, s->h - 10);
+	sys_font(s->info.sys, 0, s->h - 10);
+	sys_font(s->info.date, 0, s->h - 20);
+	sys_font(s->info.fps, 0, s->h - 30);
 	sys_font_post();
 	return true;
 }
