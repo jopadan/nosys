@@ -4,6 +4,7 @@ project( nosys VERSION 0.1 LANGUAGES C CXX )
 set(PROJECT_DESCRIPTION "C++ platform framework backend abstration")
 
 include(GNUInstallDirs)
+
 include(CheckIncludeFileCXX)
 if( NOT CMAKE_BUILD_TYPE )
         set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE )
@@ -13,7 +14,14 @@ set( CMAKE_C_STANDARD 23 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_STANDARD 26 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
-add_compile_options(-march=sandybridge -mno-avx -mfpmath=sse -O3)
+
+if( NOT CMAKE_BUILD_TYPE STREQUAL Debug )
+add_compile_options(-O3)
+else()
+add_compile_options(-O0 -g)
+endif()
+
+add_compile_options(-march=sandybridge -mno-avx -mfpmath=sse)
 add_compile_options(-D_FILE_OFFSET_BITS=64)
 add_compile_options(-fdata-sections)
 add_compile_options(-fpermissive)
@@ -36,9 +44,10 @@ target_include_directories( nosys INTERFACE
         PUBLIC_HEADER $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+target_link_libraries( nosys INTERFACE m OpenGL::OpenGL OpenGL::GLU glfw GLC )
 
 add_executable( example_c examples/example.c )
-target_link_libraries( example_c PUBLIC m OpenGL::OpenGL OpenGL::GLU glfw GLC nosys)
+target_link_libraries( example_c PUBLIC nosys )
 
 install(FILES ${PROJECT_SOURCE_DIR}/include/nosys.h DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers

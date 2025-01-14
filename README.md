@@ -3,6 +3,7 @@
 Platform independent C/C++ demo/game framework based on:
 
 - [GLFW] platform abstraction framework
+- [quesoglc] OpenGL GLC font rendering library
 
 ![screenshot](assets/images/screenshot.png "screenshot")
 
@@ -27,5 +28,7 @@ int main(int argc, char** argv)
 
 # Links
 - [GLFW]
+- [quesoglc]
 
 [GLFW]: https://github.com/glfw/glfw
+[quesoglc]: https://git.sf.net/p/quesoglc/code
