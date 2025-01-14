@@ -6,9 +6,11 @@ Platform independent C/C++ demo/game framework based on:
 - [quesoglc] free implementation of the OpenGL Character Renderer 
 
 
+## Example
+
 ![screenshot](assets/images/screenshot.png "screenshot")
 
-# Usage
+## Usage
 
 ```c
 #include <nosys.h>
@@ -27,7 +29,7 @@ int main(int argc, char** argv)
 }
 ```
 
-# Links
+## Links
 - [GLFW]
 - [quesoglc]
 
