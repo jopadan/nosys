@@ -5,6 +5,7 @@ Platform independent C/C++ demo/game framework based on:
 - [GLFW] platform abstraction framework
 - [quesoglc] free implementation of the OpenGL Character Renderer 
 
+
 ![screenshot](assets/images/screenshot.png "screenshot")
 
 # Usage
