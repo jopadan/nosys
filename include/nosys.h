@@ -14,9 +14,12 @@
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
+#include <GL/glc.h>
 #include <GL/gl.h>
 #include <GL/glcorearb.h>
 #include <GL/glu.h>
+
+typedef  GLubyte pixel[4];
 
 struct sys_t
 {
@@ -51,11 +54,23 @@ struct sys_t
 		char* date;
 		char* fps;
 	} info;
-};
+	struct
+	{
+		int id;
+		int w;
+		int h;
+	} font;
+	struct
+	{
+		const char* dir;
+		const char* name;
+		size_t number;
+	} screenshot;
+};	
 
 struct sys_t* sys = NULL;
 
-bool sys_make(int width, int height, const char* title)
+extern inline bool sys_make(int width, int height, const char* title)
 {
 	sys = calloc(1, sizeof(struct sys_t));
 	if(sys != NULL)
@@ -69,12 +84,16 @@ bool sys_make(int width, int height, const char* title)
 		sys->alpha             = 210.0f;
 		sys->beta              = -70.0f;
 		sys->zoom              =   2.0f;
+		sys->font.id           = 1;
+		sys->font.w            = 10;
+		sys->font.h            = 10;
+		sys->screenshot.name   = "screenshot.raw";
 		return true;
 	}
 	return false;
 }
 
-bool sys_free(struct sys_t* s)
+extern inline bool sys_free(struct sys_t* s)
 {
 	if(s != NULL)
 	{
@@ -95,7 +114,7 @@ bool sys_free(struct sys_t* s)
 	return false;
 }
 
-bool sys_date(struct sys_t* s)
+extern inline bool sys_date(struct sys_t* s)
 {
 	s->info.timer.time = time(NULL);
 	s->info.date = ctime(&s->info.timer.time);
@@ -103,7 +122,7 @@ bool sys_date(struct sys_t* s)
 	return true;
 }
 
-void sys_perspective()
+extern inline void sys_perspective()
 {
 	glViewport(0,0,sys->w,sys->h);
 	glMatrixMode(GL_PROJECTION);
@@ -113,7 +132,8 @@ void sys_perspective()
 	glLoadIdentity();
 	glEnable(GL_LIGHTING);
 }
-void sys_ortho2d()
+
+extern inline void sys_ortho2d()
 {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -121,9 +141,14 @@ void sys_ortho2d()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glDisable(GL_LIGHTING);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glLineWidth(3.0);
 	glColor3f(1.0f, 1.0f, 1.0f);
 }
-void sys_look_at()
+
+extern inline void sys_look_at()
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -132,14 +157,31 @@ void sys_look_at()
 	          0.0f, 1.0f, 0.0f);
 }
 
-void sys_scroll(GLFWwindow* window, GLdouble _x, GLdouble _y)
+extern inline void sys_font_pre()
+{
+	sys_ortho2d();
+	glPushMatrix();
+}
+extern inline void sys_font_post()
+{
+	glPopMatrix();
+	sys_perspective();	
+}
+
+extern inline void sys_font(const char* msg, int x, int y)
+{
+	glRasterPos2f(x,y);
+	glcRenderString(msg);
+}
+
+extern inline void sys_scroll(GLFWwindow* window, GLdouble _x, GLdouble _y)
 {
 	sys->zoom += (GLfloat) _y / 4.0f;
 	if(sys->zoom < 1.25f) sys->zoom = 1.25f;
 	printf("zoom: %f\n", sys->zoom);
 }
 
-void sys_mouse(GLFWwindow* window, int button, int action, int mods)
+extern inline void sys_mouse(GLFWwindow* window, int button, int action, int mods)
 {
 	if(button != GLFW_MOUSE_BUTTON_LEFT)
 		return;
@@ -151,7 +193,8 @@ void sys_mouse(GLFWwindow* window, int button, int action, int mods)
 	else
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
-void sys_cursor(GLFWwindow* window, double x, double y)
+
+extern inline void sys_cursor(GLFWwindow* window, double x, double y)
 {
 	if(glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
 	{
@@ -161,7 +204,44 @@ void sys_cursor(GLFWwindow* window, double x, double y)
 		sys->cursor_y = y;
 	}
 }
-void sys_keys(GLFWwindow* window, int key, int scancode, int action, int mods)
+
+extern inline void sys_io_gauge()
+{
+	static size_t i = 0;
+	static char rotor[4] = "\\|/-";
+	printf("%c", rotor[i++ % 4]);
+}
+
+extern inline bool sys_screenshot(struct sys_t* s)
+{
+	size_t count = s->w * s->h;
+	GLubyte pixels[count * sizeof(GLubyte) * 4];
+	GLint pack_alignment;
+	glGetIntegerv(GL_PACK_ALIGNMENT, &pack_alignment);
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, s->w, s->h, GL_RGBA, GL_UNSIGNED_BYTE, &pixels[0]);
+	glPixelStorei(GL_PACK_ALIGNMENT, pack_alignment);
+	FILE* of = fopen(s->screenshot.name, "wb");
+
+	size_t i = 0;
+	size_t written = 0;
+	size_t block_size = 4;
+	while(written < count * 4)
+	{
+		printf("\rWriting %s: ", s->screenshot.name);
+		sys_io_gauge();
+		ssize_t out = fwrite(pixels, 1, block_size, of);
+		if(out <= 0)
+			break;
+		written += out;
+	}
+	fclose(of);
+	printf("\rWriting %s: %s", s->screenshot.name, written == count * 4 ? "Finished!\n" : "Failed!\n");
+
+	return true;
+}
+extern inline void sys_keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	printf("key: %s action: %d mods: %X\n", glfwGetKeyName(key, scancode), action, mods);
 
@@ -173,7 +253,7 @@ void sys_keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 				glfwSetWindowShouldClose(window, GLFW_TRUE);
 				break;
 			case GLFW_KEY_F12:
-				//grab();
+				sys_screenshot(sys);
 				break;
 			case GLFW_KEY_UP:
 				sys->beta -= 5;
@@ -206,7 +286,7 @@ void sys_keys(GLFWwindow* window, int key, int scancode, int action, int mods)
 		}
 	}
 }
-void sys_size(GLFWwindow* window, int width, int height)
+extern inline void sys_size(GLFWwindow* window, int width, int height)
 {
 	sys->w = width;
 	sys->h = height;
@@ -215,7 +295,7 @@ void sys_size(GLFWwindow* window, int width, int height)
 	printf("Resolution changed: %dx%d\n", sys->w, sys->h);
 }
 
-void sys_fps(int sig, siginfo_t* si, void* uc)
+extern inline void sys_fps(int sig, siginfo_t* si, void* uc)
 {
 	sys->info.timer.fps = sys->info.timer.frames;
 	sys->info.timer.frames = 0;
@@ -223,7 +303,7 @@ void sys_fps(int sig, siginfo_t* si, void* uc)
 	asprintf(&sys->info.fps, "FPS: %-4zu", sys->info.timer.fps);
 }
 
-bool sys_info(struct sys_t* s)
+extern inline bool sys_info(struct sys_t* s)
 {
 	uname(&s->info.arch);
 	s->info.pers = personality(-1);
@@ -258,7 +338,7 @@ bool sys_info(struct sys_t* s)
 	return true;
 }
 
-bool sys_init(struct sys_t* s)
+extern inline bool sys_init(struct sys_t* s)
 {
 	if(!glfwInit())
 	{
@@ -284,18 +364,22 @@ bool sys_init(struct sys_t* s)
 	glfwMakeContextCurrent(s->win);
 	gladLoadGL(glfwGetProcAddress);
 	glfwSwapInterval(0);
+	glcContext(glcGenContext());
+	glcScale(s->font.w,s->font.h);
+	glcNewFontFromFamily(s->font.id,"Helvetica");
+	glcFont(s->font.id);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	sys_size(s->win, s->w, s->h);
 	return sys_info(s);
 }
 
-bool sys_halt(struct sys_t* s)
+extern inline bool sys_halt(struct sys_t* s)
 {
 	glfwTerminate();
 	return true;
 }
 
-bool sys_swap(struct sys_t* s)
+extern inline bool sys_swap(struct sys_t* s)
 {
 	glfwSwapBuffers(s->win);
 	glfwPollEvents();
@@ -304,13 +388,13 @@ bool sys_swap(struct sys_t* s)
 	return !glfwWindowShouldClose(s->win);
 }
 
-bool sys_clr(struct sys_t* s)
+extern inline bool sys_clr(struct sys_t* s)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	return true;
 }
 
-bool sys_draw_pre(struct sys_t* s)
+extern inline bool sys_draw_pre(struct sys_t* s)
 {
 	sys_look_at();
 	GLfloat pos[4] = { 0.0f, 0.0f, 3.0f, 1.0f };
@@ -334,13 +418,18 @@ bool sys_draw_pre(struct sys_t* s)
 	return true;
 }
 
-bool sys_draw_post(struct sys_t* s)
+extern inline bool sys_draw_post(struct sys_t* s)
 {
-	printf("\r%s %s %s", s->info.date, s->info.sys, s->info.fps);
+	
+	sys_font_pre();
+	sys_font(s->info.date, 0, s->h - 10);
+	sys_font(s->info.sys, 0, 0);
+	sys_font(s->info.fps, s->w - 50, s->h - 10);
+	sys_font_post();
 	return true;
 }
 
-bool sys_draw_test(struct sys_t* s)
+extern inline bool sys_draw_test(struct sys_t* s)
 {
 	sys_draw_pre(s);
 	glPushMatrix();
@@ -359,7 +448,7 @@ bool sys_draw_test(struct sys_t* s)
 	return sys_draw_post(s);
 }
 
-bool sys_draw(struct sys_t* s)
+extern inline bool sys_draw(struct sys_t* s)
 {
 	sys_draw_pre(s);
 	return sys_draw_post(s);

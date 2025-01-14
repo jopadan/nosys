@@ -13,8 +13,7 @@ set( CMAKE_C_STANDARD 23 )
 set( CMAKE_C_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_STANDARD 26 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
-add_compile_options(-march=native -O3)
-add_compile_options(-DHAVE_GLCOREARB_H=1)
+add_compile_options(-march=native -mfpmath=sse -O3 -g)
 add_compile_options(-D_FILE_OFFSET_BITS=64)
 add_compile_options(-fdata-sections)
 add_compile_options(-fpermissive)
@@ -30,16 +29,16 @@ add_link_options(-Wl,--print-gc-sections)
 add_link_options(-Wl,-s)
 
 find_package(OpenGL REQUIRED)
-find_package(glfw3 REQUIRED)
 
 add_library( nosys INTERFACE )
+
 target_include_directories( nosys INTERFACE
         PUBLIC_HEADER $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 add_executable( example_c examples/example.c )
-target_link_libraries( example_c nosys OpenGL::OpenGL OpenGL::GLU glfw3 m)
+target_link_libraries( example_c PUBLIC OpenGL::OpenGL OpenGL::GLU glfw GLC sail nosys)
 
 install(FILES ${PROJECT_SOURCE_DIR}/include/nosys.h DESTINATION
         ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers
